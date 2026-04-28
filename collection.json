@@ -1,0 +1,80 @@
+{
+  "info": {
+    "name": "Inventory API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "GET /inventory",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:3000/inventory"
+      }
+    },
+    {
+      "name": "GET /inventory/:id",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:3000/inventory/1"
+      }
+    },
+    {
+      "name": "POST /register",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {"key": "inventory_name", "value": "Тест", "type": "text"},
+            {"key": "description", "value": "Опис", "type": "text"}
+          ]
+        },
+        "url": "http://localhost:3000/register"
+      }
+    },
+    {
+      "name": "PUT /inventory/:id",
+      "request": {
+        "method": "PUT",
+        "header": {"key": "Content-Type", "value": "application/json"},
+        "body": {"mode": "raw", "raw": "{\"name\":\"Нова назва\"}"},
+        "url": "http://localhost:3000/inventory/1"
+      }
+    },
+    {
+      "name": "DELETE /inventory/:id",
+      "request": {
+        "method": "DELETE",
+        "url": "http://localhost:3000/inventory/1"
+      }
+    },
+    {
+      "name": "GET /inventory/:id/photo",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:3000/inventory/1/photo"
+      }
+    },
+    {
+      "name": "PUT /inventory/:id/photo",
+      "request": {
+        "method": "PUT",
+        "body": {"mode": "formdata", "formdata": [{"key": "photo", "type": "file"}]},
+        "url": "http://localhost:3000/inventory/1/photo"
+      }
+    },
+    {
+      "name": "POST /search",
+      "request": {
+        "method": "POST",
+        "header": {"key": "Content-Type", "value": "application/x-www-form-urlencoded"},
+        "body": {"mode": "urlencoded", "urlencoded": [
+          {"key": "id", "value": "1"},
+          {"key": "has_photo", "value": "on"}
+        ]},
+        "url": "http://localhost:3000/search"
+      }
+    }
+  ]
+}

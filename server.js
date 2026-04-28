@@ -3,6 +3,7 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const swaggerUi = require('swagger-ui-express');
 
 const program = new Command();
 
@@ -28,25 +29,54 @@ if (!fs.existsSync('uploads')) {
 let inventory = [];
 let idCounter = 1;
 
-// GET all inventory
+const swaggerDocument = {
+  openapi: "3.0.0",
+  info: {
+    title: "Inventory Service API",
+    version: "1.0.0",
+    description: "Lab 6 - Inventory Service"
+  },
+  paths: {
+    "/inventory": {
+      get: { summary: "Get all items", responses: { 200: { description: "OK" } } }
+    },
+    "/inventory/{id}": {
+      get: { summary: "Get item by ID", responses: { 200: {}, 404: {} } },
+      put: { summary: "Update item", responses: { 200: {}, 404: {} } },
+      delete: { summary: "Delete item", responses: { 200: {}, 404: {} } }
+    },
+    "/register": {
+      post: { summary: "Register item", responses: { 201: {}, 400: {} } }
+    },
+    "/inventory/{id}/photo": {
+      get: { summary: "Get photo", responses: { 200: {}, 404: {} } },
+      put: { summary: "Update photo", responses: { 200: {}, 404: {} } }
+    },
+    "/search": {
+      post: { summary: "Search item", responses: { 200: {}, 404: {} } }
+    }
+  }
+};
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
+
+// GET all
 app.get('/inventory', (req, res) => {
   res.json(inventory);
 });
 
-// GET item by ID
+// GET by ID
 app.get('/inventory/:id', (req, res) => {
   const id = parseInt(req.params.id);
-
   const item = inventory.find(i => i.id === id);
 
-  if (!item) {
-    return res.status(404).send('Not found');
-  }
+  if (!item) return res.status(404).send('Not found');
 
   res.json(item);
 });
 
-// CREATE item (register)
+// CREATE
 app.post('/register', upload.single('photo'), (req, res) => {
   const { inventory_name, description } = req.body;
 
@@ -66,15 +96,12 @@ app.post('/register', upload.single('photo'), (req, res) => {
   res.status(201).json(item);
 });
 
-// UPDATE item (name/description)
+// UPDATE
 app.put('/inventory/:id', (req, res) => {
   const id = parseInt(req.params.id);
-
   const item = inventory.find(i => i.id === id);
 
-  if (!item) {
-    return res.status(404).send('Not found');
-  }
+  if (!item) return res.status(404).send('Not found');
 
   const { name, description } = req.body;
 
@@ -84,15 +111,13 @@ app.put('/inventory/:id', (req, res) => {
   res.json(item);
 });
 
-// DELETE item
+// DELETE
 app.delete('/inventory/:id', (req, res) => {
   const id = parseInt(req.params.id);
 
   const index = inventory.findIndex(i => i.id === id);
 
-  if (index === -1) {
-    return res.status(404).send('Not found');
-  }
+  if (index === -1) return res.status(404).send('Not found');
 
   inventory.splice(index, 1);
 
@@ -102,7 +127,6 @@ app.delete('/inventory/:id', (req, res) => {
 // GET photo
 app.get('/inventory/:id/photo', (req, res) => {
   const id = parseInt(req.params.id);
-
   const item = inventory.find(i => i.id === id);
 
   if (!item || !item.photo) {
@@ -118,37 +142,32 @@ app.get('/inventory/:id/photo', (req, res) => {
 // UPDATE photo
 app.put('/inventory/:id/photo', upload.single('photo'), (req, res) => {
   const id = parseInt(req.params.id);
-
   const item = inventory.find(i => i.id === id);
 
-  if (!item) {
-    return res.status(404).send('Not found');
-  }
+  if (!item) return res.status(404).send('Not found');
 
   item.photo = req.file ? req.file.filename : item.photo;
 
   res.json(item);
 });
 
-//register form
+// REGISTER FORM
 app.get('/RegisterForm.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'RegisterForm.html'));
 });
 
-//search form
+// SEARCH FORM
 app.get('/SearchForm.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'SearchForm.html'));
 });
 
-//search
+// SEARCH
 app.post('/search', (req, res) => {
   const { id, has_photo } = req.body;
 
   const item = inventory.find(i => i.id === parseInt(id));
 
-  if (!item) {
-    return res.status(404).send('Not Found');
-  }
+  if (!item) return res.status(404).send('Not Found');
 
   let result = { ...item };
 
