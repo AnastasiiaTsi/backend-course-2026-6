@@ -10,12 +10,14 @@ program
 program.parse(process.argv);
 const options = program.opts();
 
-const http = require('http');
+const express = require('express');
 
-const server = http.createServer((req,res) => {
-    res.end('Server works');
+const app = express();
+
+app.get('/', (req, res) => {
+  res.send('Express works');
 });
 
-server.listen(options.port, options.host, () => {
-    console.log(`http://${options.host}:${options.port}`);
+app.listen(options.port, options.host, () => {
+  console.log(`http://${options.host}:${options.port}`);
 });
