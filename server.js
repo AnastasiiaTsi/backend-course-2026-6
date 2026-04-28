@@ -83,6 +83,20 @@ app.get('/inventory/:id/photo', (req, res) => {
   res.sendFile(filePath);
 });
 
+app.delete('/inventory/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+
+  const index = inventory.findIndex(i => i.id === id);
+
+  if (index === -1) {
+    return res.status(404).send('Not found');
+  }
+
+  inventory.splice(index, 1);
+
+  res.send('Deleted');
+});
+
 app.listen(options.port, options.host, () => {
   console.log(`http://${options.host}:${options.port}`);
 });
