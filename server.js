@@ -14,8 +14,15 @@ const express = require('express');
 
 const app = express();
 
-app.get('/', (req, res) => {
-  res.send('Express works');
+let inventory = [];
+
+//для JSON, form-data 
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// GET 
+app.get('/inventory', (req, res) => {
+  res.json(inventory);
 });
 
 app.listen(options.port, options.host, () => {
