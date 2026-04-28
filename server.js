@@ -28,13 +28,12 @@ if (!fs.existsSync('uploads')) {
 let inventory = [];
 let idCounter = 1;
 
-
-// GET all
+// GET all inventory
 app.get('/inventory', (req, res) => {
   res.json(inventory);
 });
 
-// GET by ID
+// GET item by ID
 app.get('/inventory/:id', (req, res) => {
   const id = parseInt(req.params.id);
 
@@ -47,7 +46,7 @@ app.get('/inventory/:id', (req, res) => {
   res.json(item);
 });
 
-// POST register
+// CREATE item (register)
 app.post('/register', upload.single('photo'), (req, res) => {
   const { inventory_name, description } = req.body;
 
@@ -67,36 +66,7 @@ app.post('/register', upload.single('photo'), (req, res) => {
   res.status(201).json(item);
 });
 
-// GET photo
-app.get('/inventory/:id/photo', (req, res) => {
-  const id = parseInt(req.params.id);
-
-  const item = inventory.find(i => i.id === id);
-
-  if (!item || !item.photo) {
-    return res.status(404).send('Not found');
-  }
-
-  const filePath = path.join(__dirname, 'uploads', item.photo);
-
-  res.set('Content-Type', 'image/jpeg');
-  res.sendFile(filePath);
-});
-
-app.delete('/inventory/:id', (req, res) => {
-  const id = parseInt(req.params.id);
-
-  const index = inventory.findIndex(i => i.id === id);
-
-  if (index === -1) {
-    return res.status(404).send('Not found');
-  }
-
-  inventory.splice(index, 1);
-
-  res.send('Deleted');
-});
-
+// UPDATE item (name/description)
 app.put('/inventory/:id', (req, res) => {
   const id = parseInt(req.params.id);
 
@@ -114,16 +84,63 @@ app.put('/inventory/:id', (req, res) => {
   res.json(item);
 });
 
-const path = require('path');
+// DELETE item
+app.delete('/inventory/:id', (req, res) => {
+  const id = parseInt(req.params.id);
 
+  const index = inventory.findIndex(i => i.id === id);
+
+  if (index === -1) {
+    return res.status(404).send('Not found');
+  }
+
+  inventory.splice(index, 1);
+
+  res.send('Deleted');
+});
+
+// GET photo
+app.get('/inventory/:id/photo', (req, res) => {
+  const id = parseInt(req.params.id);
+
+  const item = inventory.find(i => i.id === id);
+
+  if (!item || !item.photo) {
+    return res.status(404).send('Not found');
+  }
+
+  const filePath = path.join(__dirname, 'uploads', item.photo);
+
+  res.set('Content-Type', 'image/jpeg');
+  res.sendFile(filePath);
+});
+
+// UPDATE photo
+app.put('/inventory/:id/photo', upload.single('photo'), (req, res) => {
+  const id = parseInt(req.params.id);
+
+  const item = inventory.find(i => i.id === id);
+
+  if (!item) {
+    return res.status(404).send('Not found');
+  }
+
+  item.photo = req.file ? req.file.filename : item.photo;
+
+  res.json(item);
+});
+
+//register form
 app.get('/RegisterForm.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'RegisterForm.html'));
 });
 
+//search form
 app.get('/SearchForm.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'SearchForm.html'));
 });
 
+//search
 app.post('/search', (req, res) => {
   const { id, has_photo } = req.body;
 
@@ -140,6 +157,10 @@ app.post('/search', (req, res) => {
   }
 
   res.json(result);
+});
+
+app.use((req, res) => {
+  res.status(405).send('Method Not Allowed');
 });
 
 app.listen(options.port, options.host, () => {
