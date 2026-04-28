@@ -114,6 +114,34 @@ app.put('/inventory/:id', (req, res) => {
   res.json(item);
 });
 
+const path = require('path');
+
+app.get('/RegisterForm.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'RegisterForm.html'));
+});
+
+app.get('/SearchForm.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'SearchForm.html'));
+});
+
+app.post('/search', (req, res) => {
+  const { id, has_photo } = req.body;
+
+  const item = inventory.find(i => i.id === parseInt(id));
+
+  if (!item) {
+    return res.status(404).send('Not Found');
+  }
+
+  let result = { ...item };
+
+  if (has_photo) {
+    result.photoUrl = `/inventory/${item.id}/photo`;
+  }
+
+  res.json(result);
+});
+
 app.listen(options.port, options.host, () => {
   console.log(`http://${options.host}:${options.port}`);
 });
