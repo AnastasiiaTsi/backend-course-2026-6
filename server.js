@@ -1,22 +1,23 @@
 const { Command } = require('commander');
+const express = require('express');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 
 const program = new Command();
 
 program
-    .requiredOption('-h, --host <type>')
-    .requiredOption('-p, --port <type>')
-    .requiredOption('-c, --cache <type>');
+  .requiredOption('-h, --host <type>')
+  .requiredOption('-p, --port <type>')
+  .requiredOption('-c, --cache <type>');
 
 program.parse(process.argv);
 const options = program.opts();
 
-const express = require('express');
-
 const app = express();
 
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 const upload = multer({ dest: 'uploads/' });
 
@@ -27,12 +28,14 @@ if (!fs.existsSync('uploads')) {
 let inventory = [];
 let idCounter = 1;
 
-//для JSON, form-data 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
-// GET 
+// GET all
 app.get('/inventory', (req, res) => {
+  res.json(inventory);
+});
+
+// GET by ID
+app.get('/inventory/:id', (req, res) => {
   const id = parseInt(req.params.id);
 
   const item = inventory.find(i => i.id === id);
@@ -44,24 +47,40 @@ app.get('/inventory', (req, res) => {
   res.json(item);
 });
 
-//POST
+// POST register
 app.post('/register', upload.single('photo'), (req, res) => {
-    const { inventory_name, description } = req.body;
+  const { inventory_name, description } = req.body;
 
-    if (!inventory_name) {
-        return res.status(400).send('Name is required');
-    }
+  if (!inventory_name) {
+    return res.status(400).send('Name is required');
+  }
 
-    const item = {
-        id: idCounter++,
-        name: inventory_name,
-        description: description || '',
-        photo: req.file ? req.file.filename : null
-    };
+  const item = {
+    id: idCounter++,
+    name: inventory_name,
+    description: description || '',
+    photo: req.file ? req.file.filename : null
+  };
 
-    inventory.push(item);
+  inventory.push(item);
 
-    res.status(201).json(item);
+  res.status(201).json(item);
+});
+
+// GET photo
+app.get('/inventory/:id/photo', (req, res) => {
+  const id = parseInt(req.params.id);
+
+  const item = inventory.find(i => i.id === id);
+
+  if (!item || !item.photo) {
+    return res.status(404).send('Not found');
+  }
+
+  const filePath = path.join(__dirname, 'uploads', item.photo);
+
+  res.set('Content-Type', 'image/jpeg');
+  res.sendFile(filePath);
 });
 
 app.listen(options.port, options.host, () => {
