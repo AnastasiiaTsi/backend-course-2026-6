@@ -33,7 +33,15 @@ app.use(express.urlencoded({ extended: true }));
 
 // GET 
 app.get('/inventory', (req, res) => {
-  res.json(inventory);
+  const id = parseInt(req.params.id);
+
+  const item = inventory.find(i => i.id === id);
+
+  if (!item) {
+    return res.status(404).send('Not found');
+  }
+
+  res.json(item);
 });
 
 //POST
