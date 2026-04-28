@@ -97,6 +97,23 @@ app.delete('/inventory/:id', (req, res) => {
   res.send('Deleted');
 });
 
+app.put('/inventory/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+
+  const item = inventory.find(i => i.id === id);
+
+  if (!item) {
+    return res.status(404).send('Not found');
+  }
+
+  const { name, description } = req.body;
+
+  if (name) item.name = name;
+  if (description) item.description = description;
+
+  res.json(item);
+});
+
 app.listen(options.port, options.host, () => {
   console.log(`http://${options.host}:${options.port}`);
 });
