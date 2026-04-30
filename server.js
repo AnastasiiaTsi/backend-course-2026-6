@@ -15,85 +15,99 @@ program
 program.parse(process.argv);
 const options = program.opts();
 
+const cacheDir = path.resolve(options.cache);
+
 // Створення cache директорії
-if (!fs.existsSync(options.cache)) {
-  fs.mkdirSync(options.cache, { recursive: true });
+if (!fs.existsSync(cacheDir)) {
+  fs.mkdirSync(cacheDir, { recursive: true });
 }
 
-// Налаштування multer для збереження в cache
+// Multer storage
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, options.cache);
+    cb(null, cacheDir);
   },
   filename: (req, file, cb) => {
-    const uniqueName = Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(file.originalname);
+    const uniqueName =
+      Date.now() +
+      '-' +
+      Math.round(Math.random() * 1e9) +
+      path.extname(file.originalname);
+
     cb(null, uniqueName);
   }
 });
-const upload = multer({ storage: storage });
+
+const upload = multer({ storage });
 
 const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Завантаження даних з файлу
-const dataFile = path.join(options.cache, 'inventory.json');
+// JSON файл
+const dataFile = path.join(cacheDir, 'inventory.json');
+
 let inventory = [];
 let idCounter = 1;
 
 function loadData() {
   if (fs.existsSync(dataFile)) {
     const data = JSON.parse(fs.readFileSync(dataFile, 'utf8'));
-    inventory = data.inventory;
-    idCounter = data.idCounter;
+    inventory = data.inventory || [];
+    idCounter = data.idCounter || 1;
   }
 }
 
 function saveData() {
-  fs.writeFileSync(dataFile, JSON.stringify({ inventory, idCounter }, null, 2));
+  fs.writeFileSync(
+    dataFile,
+    JSON.stringify({ inventory, idCounter }, null, 2)
+  );
 }
 
 loadData();
 
+// Swagger
 const swaggerDocument = {
-  openapi: "3.0.0",
+  openapi: '3.0.0',
   info: {
-    title: "Inventory Service API",
-    version: "1.0.0",
-    description: "Lab 6 - Inventory Service"
+    title: 'Inventory Service API',
+    version: '1.0.0',
+    description: 'Lab 6 - Inventory Service'
   },
   paths: {
-    "/inventory": {
-      get: { summary: "Get all items", responses: { 200: { description: "OK" } } }
+    '/inventory': {
+      get: { summary: 'Get all items', responses: { 200: { description: 'OK' } } }
     },
-    "/inventory/{id}": {
-      get: { summary: "Get item by ID", responses: { 200: {}, 404: {} } },
-      put: { summary: "Update item", responses: { 200: {}, 404: {} } },
-      delete: { summary: "Delete item", responses: { 200: {}, 404: {} } }
+    '/inventory/{id}': {
+      get: { summary: 'Get item by ID', responses: { 200: {}, 404: {} } },
+      put: { summary: 'Update item', responses: { 200: {}, 404: {} } },
+      delete: { summary: 'Delete item', responses: { 200: {}, 404: {} } }
     },
-    "/register": {
-      post: { summary: "Register item", responses: { 201: {}, 400: {} } }
+    '/register': {
+      post: { summary: 'Register item', responses: { 201: {}, 400: {} } }
     },
-    "/inventory/{id}/photo": {
-      get: { summary: "Get photo", responses: { 200: {}, 404: {} } },
-      put: { summary: "Update photo", responses: { 200: {}, 404: {} } }
+    '/inventory/{id}/photo': {
+      get: { summary: 'Get photo', responses: { 200: {}, 404: {} } },
+      put: { summary: 'Update photo', responses: { 200: {}, 404: {} } }
     },
-    "/search": {
-      post: { summary: "Search item", responses: { 200: {}, 404: {} } }
+    '/search': {
+      post: { summary: 'Search item', responses: { 200: {}, 404: {} } }
     }
   }
 };
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
-// GET all - включає посилання на фото
+// GET all
 app.get('/inventory', (req, res) => {
-  const itemsWithPhotoUrl = inventory.map(item => ({
-    ...item,
-    photoUrl: `/inventory/${item.id}/photo`
-  }));
-  res.json(itemsWithPhotoUrl);
+  res.json(
+    inventory.map(item => ({
+      ...item,
+      photoUrl: `/inventory/${item.id}/photo`
+    }))
+  );
 });
 
 // GET by ID
@@ -133,7 +147,7 @@ app.post('/register', upload.single('photo'), (req, res) => {
   });
 });
 
-// UPDATE
+// UPDATE item
 app.put('/inventory/:id', (req, res) => {
   const id = parseInt(req.params.id);
   const item = inventory.find(i => i.id === id);
@@ -144,7 +158,7 @@ app.put('/inventory/:id', (req, res) => {
 
   if (name) item.name = name;
   if (description) item.description = description;
-  
+
   saveData();
 
   res.json({
@@ -153,7 +167,7 @@ app.put('/inventory/:id', (req, res) => {
   });
 });
 
-// DELETE - видаляє і файл фото
+// DELETE
 app.delete('/inventory/:id', (req, res) => {
   const id = parseInt(req.params.id);
   const index = inventory.findIndex(i => i.id === id);
@@ -161,10 +175,9 @@ app.delete('/inventory/:id', (req, res) => {
   if (index === -1) return res.status(404).json({ error: 'Not found' });
 
   const item = inventory[index];
-  
-  // Видалення файлу фото
+
   if (item.photo) {
-    const photoPath = path.join(options.cache, item.photo);
+    const photoPath = path.join(cacheDir, item.photo);
     if (fs.existsSync(photoPath)) {
       fs.unlinkSync(photoPath);
     }
@@ -173,10 +186,10 @@ app.delete('/inventory/:id', (req, res) => {
   inventory.splice(index, 1);
   saveData();
 
-  res.status(200).json({ message: 'Deleted' });
+  res.json({ message: 'Deleted' });
 });
 
-// GET photo
+// GET photo 
 app.get('/inventory/:id/photo', (req, res) => {
   const id = parseInt(req.params.id);
   const item = inventory.find(i => i.id === id);
@@ -185,14 +198,9 @@ app.get('/inventory/:id/photo', (req, res) => {
     return res.status(404).send('Not found');
   }
 
-  const filePath = path.join(options.cache, item.photo);
-  
-  if (!fs.existsSync(filePath)) {
-    return res.status(404).send('Photo file not found');
-  }
-
-  res.set('Content-Type', 'image/jpeg');
-  res.sendFile(filePath);
+  res.sendFile(item.photo, {
+    root: cacheDir
+  });
 });
 
 // UPDATE photo
@@ -206,26 +214,22 @@ app.put('/inventory/:id/photo', upload.single('photo'), (req, res) => {
     return res.status(400).json({ error: 'Photo is required' });
   }
 
-  // Видалення старого фото
   if (item.photo) {
-    const oldPhotoPath = path.join(options.cache, item.photo);
-    if (fs.existsSync(oldPhotoPath)) {
-      fs.unlinkSync(oldPhotoPath);
-    }
+    const oldPath = path.join(cacheDir, item.photo);
+    if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
   }
 
   item.photo = req.file.filename;
   saveData();
 
-  res.status(200).json({ message: 'Photo updated' });
+  res.json({ message: 'Photo updated' });
 });
 
-// REGISTER FORM
+// Forms
 app.get('/RegisterForm.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'RegisterForm.html'));
 });
 
-// SEARCH FORM
 app.get('/SearchForm.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'SearchForm.html'));
 });
@@ -237,8 +241,9 @@ app.post('/search', (req, res) => {
 
   if (!item) return res.status(404).send('Not Found');
 
-  let result = `ID: ${item.id}\nName: ${item.name}\nDescription: ${item.description}`;
-  
+  let result =
+    `ID: ${item.id}\nName: ${item.name}\nDescription: ${item.description}`;
+
   if (has_photo === 'on') {
     result += `\nPhoto URL: /inventory/${item.id}/photo`;
   }
@@ -246,20 +251,13 @@ app.post('/search', (req, res) => {
   res.send(result);
 });
 
-// Обробка непідтримуваних методів
+// 405 handler
 app.use((req, res) => {
   res.status(405).send('Method Not Allowed');
 });
 
 app.listen(options.port, options.host, () => {
   console.log(`Server running at http://${options.host}:${options.port}`);
-  console.log(`Cache directory: ${options.cache}`);
+  console.log(`Cache directory: ${cacheDir}`);
   console.log(`Swagger docs: http://${options.host}:${options.port}/api-docs`);
 });
-
-
-
-
-//http://localhost:3000/RegisterForm.html
-//http://localhost:3000/SearchForm.html
-//http://localhost:3000/

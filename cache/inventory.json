@@ -1,0 +1,23 @@
+{
+  "inventory": [
+    {
+      "id": 2,
+      "name": "laptop",
+      "description": "device",
+      "photo": "1777556953752-345405184.png"
+    },
+    {
+      "id": 3,
+      "name": "laptop",
+      "description": "device",
+      "photo": "1777557796577-488432922.png"
+    },
+    {
+      "id": 4,
+      "name": "New Laptop",
+      "description": "Updated device",
+      "photo": "1777558043433-631072873.png"
+    }
+  ],
+  "idCounter": 5
+}
