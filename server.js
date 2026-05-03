@@ -78,22 +78,51 @@ const swaggerDocument = {
   },
   paths: {
     '/inventory': {
-      get: { summary: 'Get all items', responses: { 200: { description: 'OK' } } }
+      get: {
+        summary: 'Get all items',
+        responses: { 200: { description: 'OK' } }
+      }
     },
     '/inventory/{id}': {
-      get: { summary: 'Get item by ID', responses: { 200: {}, 404: {} } },
-      put: { summary: 'Update item', responses: { 200: {}, 404: {} } },
-      delete: { summary: 'Delete item', responses: { 200: {}, 404: {} } }
+      get: {
+        summary: 'Get item by ID',
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'integer' } }],
+        responses: { 200: { description: 'OK' }, 404: { description: 'Not Found' } }
+      },
+      put: {
+        summary: 'Update item',
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'integer' } }],
+        responses: { 200: { description: 'OK' }, 404: { description: 'Not Found' } }
+      },
+      delete: {
+        summary: 'Delete item',
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'integer' } }],
+        responses: { 200: { description: 'OK' }, 404: { description: 'Not Found' } }
+      }
     },
     '/register': {
-      post: { summary: 'Register item', responses: { 201: {}, 400: {} } }
+      post: {
+        summary: 'Register item',
+        responses: { 201: { description: 'Created' }, 400: { description: 'Bad Request' } }
+      }
     },
     '/inventory/{id}/photo': {
-      get: { summary: 'Get photo', responses: { 200: {}, 404: {} } },
-      put: { summary: 'Update photo', responses: { 200: {}, 404: {} } }
+      get: {
+        summary: 'Get photo',
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'integer' } }],
+        responses: { 200: { description: 'OK' }, 404: { description: 'Not Found' } }
+      },
+      put: {
+        summary: 'Update photo',
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'integer' } }],
+        responses: { 200: { description: 'OK' }, 404: { description: 'Not Found' } }
+      }
     },
     '/search': {
-      post: { summary: 'Search item', responses: { 200: {}, 404: {} } }
+      post: {
+        summary: 'Search item',
+        responses: { 200: { description: 'OK' }, 404: { description: 'Not Found' } }
+      }
     }
   }
 };
