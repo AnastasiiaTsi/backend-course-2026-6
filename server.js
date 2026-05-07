@@ -5,6 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const swaggerUi = require('swagger-ui-express');
 const { pool } = require('./db');
+require('dotenv').config();  // додати на початку файлу
 
 const program = new Command();
 

@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   db:
     image: postgres:15
@@ -12,13 +10,14 @@ services:
       - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql  # Fixed: removed db/ prefix
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
 
   app:
     build: .
     restart: always
     ports:
       - "3000:3000"
+      - "9229:9229"
     depends_on:
       - db
     environment:

@@ -4,8 +4,9 @@
   "main": "server.js",
   "type": "commonjs",
   "scripts": {
-    "dev": "nodemon server.js",
-    "start": "node server.js"
+    "dev": "nodemon --inspect=0.0.0.0:9229 server.js",
+    "start": "node server.js",
+    "debug": "node --inspect=0.0.0.0:9229 server.js"
   },
   "dependencies": {
     "express": "^5.2.1",
